@@ -178,7 +178,7 @@ const isTelegramEvent = event => {
 
 const START_MESSAGE = `
   Скопируйте и вставьте мне следующее сообщение:
-  {
+  \`\`\`{
     fromDate: ${moment()
       .subtract(1, "days")
       .format("YYYY-MM-DD")},
@@ -192,5 +192,5 @@ const START_MESSAGE = `
     buildingYearMin: 1980,
     buildingYearMax: 2029,
     metersToSubway: 3000
-  }
+  }\`\`\`
 `;
