@@ -5,6 +5,11 @@ const client = axios.create({
   timeout: 15000
 });
 
+/**
+ * @param {number} chatId
+ * @param {string} text
+ * @returns {Promise}
+ */
 exports.sendMessage = async (chatId, message) => {
   const response = await client.post(
     `/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,

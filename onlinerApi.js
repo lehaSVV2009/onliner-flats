@@ -41,19 +41,27 @@ const client = axios.create({
  *
  * @returns {Promise<ApartmentResponse>}
  */
-// https://r.onliner.by/pk/?price[min]=34750&price[max]=50500&currency=usd&number_of_rooms[]=1&area[min]=30&area[max]=1000&resale=true&building_year[min]=1980&building_year[max]=2029#bounds[lb][lat]=53.735377807692196&bounds[lb][long]=27.124780118465427&bounds[rt][lat]=54.014292426543115&bounds[rt][long]=28.003686368465427&order=created_at:desc
-exports.fetchApartments = async () => {
+exports.fetchApartments = async ({
+  priceMin,
+  priceMax,
+  currency,
+  numberOfRooms,
+  areaMin,
+  areaMax,
+  buildingYearMin,
+  buildingYearMax
+}) => {
   const response = await client.get("/search/apartments", {
     params: {
-      "price[min]": 34750,
-      "price[max]": 50500,
-      currency: "usd",
-      "number_of_rooms[]": 1,
-      "area[min]": 30,
-      "area[max]": 1000,
+      "price[min]": priceMin,
+      "price[max]": priceMax,
+      currency,
+      "number_of_rooms[]": numberOfRooms,
+      "area[min]": areaMin,
+      "area[max]": areaMax,
       resale: "true",
-      "building_year[min]": 1980,
-      "building_year[max]": 2029
+      "building_year[min]": buildingYearMin,
+      "building_year[max]": buildingYearMax
     }
   });
   return response.data;

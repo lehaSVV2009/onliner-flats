@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const { getDistance } = require("geolib");
 const moment = require("moment");
-const orderBy = require("lodash.orderby");
 
 const onlinerApi = require("./onlinerApi");
 const telegramApi = require("./telegramApi");
@@ -41,36 +40,60 @@ const MINSK_SUBWAY_COORDINATES = [
   { latitude: 53.862264, longitude: 27.674146 }
 ];
 
+const DEFAULT_CONFIG = {
+  chatId: process.env.TELEGRAM_CHAT_ID,
+  priceMin: 34750,
+  priceMax: 50500,
+  currency: "usd",
+  numberOfRooms: 1,
+  areaMin: 30,
+  areaMax: 1000,
+  resale: "true",
+  buildingYearMin: 1980,
+  buildingYearMax: 2029,
+  fromDate: moment()
+    .subtract(1, "days")
+    .toDate(),
+  toDate: moment().toDate(),
+  metersToSubway: 4000
+};
+
 exports.handler = async event => {
   console.log(event);
 
-  // TODO get params from message
+  if (isTelegramStartOrHelpEvent(event)) {
+    const message = parseTelegramMessage(event);
+    await telegramApi.sendMessage(message.chat.id, START_MESSAGE);
 
-  let chatId = process.env.TELEGRAM_CHAT_ID;
-  let fromDate = moment()
-    .subtract(1, "days")
-    .toDate();
-  let toDate = moment().toDate();
-  let distanceFromSubway = 3000;
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ status: "ok" })
+    };
+  }
 
   try {
-    const { apartments } = await onlinerApi.fetchApartments();
+    const config = toConfig(event);
 
-    const filteredApartments = orderBy(apartments, ["created_at"], ["asc"])
-      .filter(apartment =>
-        moment(apartment.created_at).isBetween(fromDate, toDate)
-      )
-      .filter(apartment => {
-        return MINSK_SUBWAY_COORDINATES.some(
+    const { apartments } = await onlinerApi.fetchApartments(config);
+
+    const filteredApartments = apartments.filter(
+      apartment =>
+        moment(apartment.created_at).isBetween(
+          config.fromDate,
+          config.toDate
+        ) &&
+        MINSK_SUBWAY_COORDINATES.some(
           subwayCoordinates =>
             getDistance(subwayCoordinates, apartment.location) <
-            distanceFromSubway
-        );
-      });
+            config.metersToSubway
+        )
+    );
 
     await telegramApi.sendMessage(
-      chatId,
-      `#onliner ${filteredApartments.map(apartment => apartment.url).join(" ")}`
+      config.chatId,
+      `Новые однушки у метро с Онлайнера за день: ${filteredApartments
+        .map(apartment => apartment.url)
+        .join(" ")}`
     );
 
     console.log("Success");
@@ -86,3 +109,87 @@ exports.handler = async event => {
     };
   }
 };
+
+const toConfig = event => {
+  if (isTelegramEvent(event)) {
+    const message = parseTelegramMessage(event);
+    try {
+      const telegramConfig = JSON.parse(message.text.trim());
+      return {
+        ...telegramConfig,
+        ...DEFAULT_CONFIG
+      };
+    } catch (e) {
+      return DEFAULT_CONFIG;
+    }
+  }
+
+  if (event.queryStringParameters) {
+    return {
+      ...DEFAULT_CONFIG,
+      ...event.queryStringParameters
+    };
+  }
+
+  return DEFAULT_CONFIG;
+};
+
+/**
+ * @typedef Message
+ * @property {string} text
+ * @property {{ id: number }} chat
+ *
+ * @param {Object} event
+ * @returns {Message}
+ */
+const parseTelegramMessage = event => {
+  const { message } = JSON.parse(event.body);
+  return message;
+};
+
+/**
+ * @param {Object} event
+ * @returns {boolean}
+ */
+const isTelegramStartOrHelpEvent = event => {
+  if (!isTelegramEvent(event)) {
+    return false;
+  }
+  const message = parseTelegramMessage(event);
+  return message.text === "/start" || message.text === "/help";
+};
+
+/**
+ * @param {Object} event
+ * @returns {boolean}
+ */
+const isTelegramEvent = event => {
+  if (!event || !event.body) {
+    return false;
+  }
+  try {
+    const body = JSON.parse(event.body);
+    return body && body.message && body.message.text;
+  } catch (e) {
+    return false;
+  }
+};
+
+const START_MESSAGE = `
+  Скопируйте и вставьте мне следующее сообщение:
+  {
+    fromDate: ${moment().format("YYYY-MM-DD")},
+    toDate: ${moment()
+      .subtract(1, "days")
+      .format("YYYY-MM-DD")},
+    priceMin: 34750,
+    priceMax: 50500,
+    currency: "usd",
+    numberOfRooms: 1,
+    areaMin: 30,
+    areaMax: 1000,
+    buildingYearMin: 1980,
+    buildingYearMax: 2029,
+    metersToSubway: 3000
+  }
+`;
