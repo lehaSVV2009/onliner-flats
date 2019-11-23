@@ -116,8 +116,9 @@ const toConfig = event => {
     try {
       const telegramConfig = JSON.parse(message.text.trim());
       return {
+        ...DEFAULT_CONFIG,
         ...telegramConfig,
-        ...DEFAULT_CONFIG
+        chatId: message.chat.id
       };
     } catch (e) {
       return DEFAULT_CONFIG;
@@ -178,10 +179,10 @@ const isTelegramEvent = event => {
 const START_MESSAGE = `
   Скопируйте и вставьте мне следующее сообщение:
   {
-    fromDate: ${moment().format("YYYY-MM-DD")},
-    toDate: ${moment()
+    fromDate: ${moment()
       .subtract(1, "days")
       .format("YYYY-MM-DD")},
+    toDate: ${moment().format("YYYY-MM-DD")},
     priceMin: 34750,
     priceMax: 50500,
     currency: "usd",
