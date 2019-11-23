@@ -61,17 +61,13 @@ const DEFAULT_CONFIG = {
 exports.handler = async event => {
   console.log(event);
 
-  if (isTelegramStartOrHelpEvent(event)) {
-    const message = parseTelegramMessage(event);
-    await telegramApi.sendMessage(message.chat.id, START_MESSAGE);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ status: "ok" })
-    };
-  }
-
   try {
+    if (isTelegramStartOrHelpEvent(event)) {
+      const message = parseTelegramMessage(event);
+      await telegramApi.sendMessage(message.chat.id, START_MESSAGE);
+      return { statusCode: 200, body: JSON.stringify({ status: "ok" }) };
+    }
+
     const config = toConfig(event);
 
     const { apartments } = await onlinerApi.fetchApartments(config);
@@ -91,9 +87,10 @@ exports.handler = async event => {
 
     await telegramApi.sendMessage(
       config.chatId,
-      `Новые однушки у метро с Онлайнера за день: ${filteredApartments
+      `Новые однушки у метро с Онлайнера: ${filteredApartments
         .map(apartment => apartment.url)
-        .join(" ")}`
+        .join(" ")}
+      \nНастройки: ${JSON.stringify(config)}`
     );
 
     console.log("Success");
@@ -152,18 +149,6 @@ const parseTelegramMessage = event => {
  * @param {Object} event
  * @returns {boolean}
  */
-const isTelegramStartOrHelpEvent = event => {
-  if (!isTelegramEvent(event)) {
-    return false;
-  }
-  const message = parseTelegramMessage(event);
-  return message.text === "/start" || message.text === "/help";
-};
-
-/**
- * @param {Object} event
- * @returns {boolean}
- */
 const isTelegramEvent = event => {
   if (!event || !event.body) {
     return false;
@@ -176,21 +161,33 @@ const isTelegramEvent = event => {
   }
 };
 
+/**
+ * @param {Object} event
+ * @returns {boolean}
+ */
+const isTelegramStartOrHelpEvent = event => {
+  if (!isTelegramEvent(event)) {
+    return false;
+  }
+  const message = parseTelegramMessage(event);
+  return message.text === "/start" || message.text === "/help";
+};
+
 const START_MESSAGE = `
-  Скопируйте и вставьте мне следующее сообщение:
-  \`\`\`{
-    fromDate: ${moment()
-      .subtract(1, "days")
-      .format("YYYY-MM-DD")},
-    toDate: ${moment().format("YYYY-MM-DD")},
-    priceMin: 34750,
-    priceMax: 50500,
-    currency: "usd",
-    numberOfRooms: 1,
-    areaMin: 30,
-    areaMax: 1000,
-    buildingYearMin: 1980,
-    buildingYearMax: 2029,
-    metersToSubway: 3000
-  }\`\`\`
+Скопируйте и вставьте мне следующее сообщение:
+{
+  fromDate: ${moment()
+    .subtract(1, "days")
+    .format("YYYY-MM-DD")},
+  toDate: ${moment().format("YYYY-MM-DD")},
+  priceMin: 34750,
+  priceMax: 50500,
+  currency: "usd",
+  numberOfRooms: 1,
+  areaMin: 30,
+  areaMax: 1000,
+  buildingYearMin: 1980,
+  buildingYearMax: 2029,
+  metersToSubway: 3000
+}
 `;
