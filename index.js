@@ -48,9 +48,10 @@ const DEFAULT_CONFIG = {
   numberOfRooms: 1,
   areaMin: 30,
   areaMax: 1000,
-  resale: "true",
   buildingYearMin: 1980,
   buildingYearMax: 2029,
+  resale: "true",
+  outermostFloor: "false",
   fromDate: moment()
     .subtract(1, "days")
     .toDate(),
@@ -90,7 +91,7 @@ exports.handler = async event => {
       `Новые однушки у метро с Онлайнера: ${filteredApartments
         .map(apartment => apartment.url)
         .join(" ")}
-      \nНастройки: ${JSON.stringify(config)}`
+      \nНастройки: ${JSON.stringify(config, null, 2)}`
     );
 
     console.log("Success");
@@ -176,18 +177,20 @@ const isTelegramStartOrHelpEvent = event => {
 const START_MESSAGE = `
 Скопируйте и вставьте мне следующее сообщение:
 {
-  fromDate: ${moment()
+  "fromDate": "${moment()
     .subtract(1, "days")
-    .format("YYYY-MM-DD")},
-  toDate: ${moment().format("YYYY-MM-DD")},
-  priceMin: 34750,
-  priceMax: 50500,
-  currency: "usd",
-  numberOfRooms: 1,
-  areaMin: 30,
-  areaMax: 1000,
-  buildingYearMin: 1980,
-  buildingYearMax: 2029,
-  metersToSubway: 3000
+    .format("YYYY-MM-DD")}",
+  "toDate": "${moment().format("YYYY-MM-DD")}",
+  "priceMin": 34750,
+  "priceMax": 50500,
+  "currency": "usd",
+  "numberOfRooms": 1,
+  "areaMin": 30,
+  "areaMax": 1000,
+  "buildingYearMin": 1980,
+  "buildingYearMax": 2029,
+  "resale": "true",
+  "outermostFloor": "false",
+  "metersToSubway": 3000  
 }
 `;

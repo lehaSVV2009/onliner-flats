@@ -49,7 +49,9 @@ exports.fetchApartments = async ({
   areaMin,
   areaMax,
   buildingYearMin,
-  buildingYearMax
+  buildingYearMax,
+  resale,
+  outermostFloor
 }) => {
   const response = await client.get("/search/apartments", {
     params: {
@@ -59,9 +61,10 @@ exports.fetchApartments = async ({
       "number_of_rooms[]": numberOfRooms,
       "area[min]": areaMin,
       "area[max]": areaMax,
-      resale: "true",
       "building_year[min]": buildingYearMin,
-      "building_year[max]": buildingYearMax
+      "building_year[max]": buildingYearMax,
+      resale,
+      outermost_floor: outermostFloor
     }
   });
   return response.data;
