@@ -65,38 +65,36 @@ exports.handler = async event => {
   try {
     if (isTelegramStartOrHelpEvent(event)) {
       const message = parseTelegramMessage(event);
-      await telegramApi.sendMessage(message.chat.id, START_MESSAGE);
+      await telegramApi.sendMessage(
+        message.chat.id,
+        formatStartMessage(DEFAULT_CONFIG)
+      );
       return { statusCode: 200, body: JSON.stringify({ status: "ok" }) };
     }
 
     const config = toConfig(event);
 
-    const { apartments } = await onlinerApi.fetchApartments(config);
+    const { apartments: flats } = await onlinerApi.fetchApartments(config);
 
-    const filteredApartments = apartments.filter(
-      apartment =>
-        moment(apartment.created_at).isBetween(
-          config.fromDate,
-          config.toDate
-        ) &&
+    const filteredFlats = flats.filter(
+      flat =>
+        moment(flat.created_at).isBetween(config.fromDate, config.toDate) &&
         MINSK_SUBWAY_COORDINATES.some(
           subwayCoordinates =>
-            getDistance(subwayCoordinates, apartment.location) <
+            getDistance(subwayCoordinates, flat.location) <
             config.metersToSubway
         )
     );
 
     await telegramApi.sendMessage(
       config.chatId,
-      `#onliner-flats
-      \n${filteredApartments.map(apartment => apartment.url).join(" ")}
-      \nНастройки: \n\`\`\`${JSON.stringify(config, null, 2)}\`\`\``
+      formatFlatsMessage(filteredFlats, config)
     );
 
     console.log("Success");
     return {
       statusCode: 200,
-      body: JSON.stringify({ apartments: filteredApartments })
+      body: JSON.stringify({ flats: filteredFlats })
     };
   } catch (e) {
     console.log("Error", e);
@@ -185,25 +183,25 @@ const isTelegramStartOrHelpEvent = event => {
   return message.text === "/start" || message.text === "/help";
 };
 
-const START_MESSAGE = `
-Скопируйте и вставьте мне следующее сообщение _(можете поменять значения)_:
-\`\`\`
-{
-  "fromDate": "${moment()
-    .subtract(1, "days")
-    .format("YYYY-MM-DD")}",
-  "toDate": "${moment().format("YYYY-MM-DD")}",
-  "priceMin": 34750,
-  "priceMax": 50500,
-  "currency": "usd",
-  "numberOfRooms": 1,
-  "areaMin": 30,
-  "areaMax": 1000,
-  "buildingYearMin": 1980,
-  "buildingYearMax": 2029,
-  "resale": "true",
-  "outermostFloor": "false",
-  "metersToSubway": 3000  
-}
-\`\`\`
-`;
+const formatStartMessage = config => {
+  const { chatId, ...startConfig } = config;
+  startConfig.fromDate = moment().format("YYYY-MM-DD");
+  startConfig.toDate = moment()
+    .add(1, "days")
+    .format("YYYY-MM-DD");
+
+  return `Скопируйте и вставьте мне следующее сообщение _(можете поменять значения)_: \`\`\`json\n${JSON.stringify(
+    startConfig,
+    null,
+    2
+  )}\`\`\``;
+};
+
+const formatFlatsMessage = (flats, config) =>
+  `#onliner\\_flats \n${flats
+    .map(flat => flat.url)
+    .join(" ")} \nНастройки: \`\`\`json\n${JSON.stringify(
+    config,
+    null,
+    2
+  )}\`\`\``;
