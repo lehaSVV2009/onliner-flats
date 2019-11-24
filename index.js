@@ -190,7 +190,7 @@ const formatStartMessage = config => {
     .add(1, "days")
     .format("YYYY-MM-DD");
 
-  return `Скопируйте и вставьте мне следующее сообщение _(можете поменять значения)_: \`\`\`json\n${JSON.stringify(
+  return `Скопируйте и вставьте мне следующее сообщение _(можете поменять значения)_: \`\`\`json\n/flats\n${JSON.stringify(
     startConfig,
     null,
     2
