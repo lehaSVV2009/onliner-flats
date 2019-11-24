@@ -56,7 +56,7 @@ const DEFAULT_CONFIG = {
     .subtract(1, "days")
     .toDate(),
   toDate: moment().toDate(),
-  metersToSubway: 3000
+  metersToSubway: 10000
 };
 
 exports.handler = async event => {
@@ -122,28 +122,72 @@ const toConfig = event => {
     config.chatId = message.chat.id;
   }
 
-  if (!message.text) {
+  if (!message.text || !message.text.startsWith("/flats")) {
     return config;
   }
 
-  const jsonStartIndex = message.text.indexOf("{");
-  const jsonLastIndex = message.text.lastIndexOf("}");
+  const args = message.text
+    .replace("/flats", "")
+    .trim()
+    .split(" ");
 
-  if (jsonStartIndex === -1 || jsonLastIndex === -1) {
-    return config;
+  const [
+    priceMin,
+    priceMax,
+    numberOfRooms,
+    areaMin,
+    areaMax,
+    buildingYearMin,
+    buildingYearMax,
+    fromDate,
+    toDate,
+    metersToSubway,
+    resale,
+    outermostFloor,
+    currency
+  ] = args;
+
+  if (priceMin) {
+    config.priceMin = priceMin;
+  }
+  if (priceMin) {
+    config.priceMax = priceMax;
+  }
+  if (numberOfRooms) {
+    config.numberOfRooms = numberOfRooms;
+  }
+  if (areaMin) {
+    config.areaMin = areaMin;
+  }
+  if (areaMax) {
+    config.areaMax = areaMin;
+  }
+  if (buildingYearMin) {
+    config.buildingYearMin = buildingYearMin;
+  }
+  if (buildingYearMax) {
+    config.buildingYearMax = buildingYearMax;
+  }
+  if (fromDate) {
+    config.fromDate = fromDate;
+  }
+  if (toDate) {
+    config.toDate = toDate;
+  }
+  if (metersToSubway) {
+    config.metersToSubway = metersToSubway;
+  }
+  if (resale) {
+    config.resale = resale;
+  }
+  if (outermostFloor) {
+    config.outermostFloor = outermostFloor;
+  }
+  if (currency) {
+    config.currency = currency;
   }
 
-  try {
-    const telegramConfig = JSON.parse(
-      message.text.substring(jsonStartIndex, jsonLastIndex + 1)
-    );
-    return {
-      ...config,
-      ...telegramConfig
-    };
-  } catch (e) {
-    return config;
-  }
+  return config;
 };
 
 /**
@@ -208,4 +252,4 @@ const formatFlatsMessage = (flats, config) =>
     config,
     null,
     2
-  )}\`\`\``;
+  )}\`\`\` \n Нажми /help чтобы увидеть дополнительные параметры`;
