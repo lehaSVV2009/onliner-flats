@@ -41,7 +41,7 @@ const MINSK_SUBWAY_COORDINATES = [
 ];
 
 const DEFAULT_CONFIG = {
-  chatId: process.env.TELEGRAM_CHAT_ID,
+  chatId: `${process.env.TELEGRAM_CHAT_ID}`,
   priceMin: 34750,
   priceMax: 50500,
   currency: "usd",
@@ -117,15 +117,20 @@ const toConfig = event => {
 
   const message = parseTelegramMessage(event);
 
+  const config = { ...DEFAULT_CONFIG };
+  if (message.chat && message.chat.id) {
+    config.chatId = message.chat.id;
+  }
+
   if (!message.text) {
-    return DEFAULT_CONFIG;
+    return config;
   }
 
   const jsonStartIndex = message.text.indexOf("{");
   const jsonLastIndex = message.text.lastIndexOf("}");
 
   if (jsonStartIndex === -1 || jsonLastIndex === -1) {
-    return DEFAULT_CONFIG;
+    return config;
   }
 
   try {
@@ -133,12 +138,11 @@ const toConfig = event => {
       message.text.substring(jsonStartIndex, jsonLastIndex + 1)
     );
     return {
-      ...DEFAULT_CONFIG,
-      ...telegramConfig,
-      chatId: message.chat.id
+      ...config,
+      ...telegramConfig
     };
   } catch (e) {
-    return DEFAULT_CONFIG;
+    return config;
   }
 };
 
