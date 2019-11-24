@@ -238,13 +238,7 @@ const formatStartMessage = config => {
     .add(1, "days")
     .format("YYYY-MM-DD");
 
-  return `Введите /flats для того, чтобы увидеть новые объявления о квартирах сегодня
-    \n Расширенные примеры:
-    \n Квартиры от 20.000$ до 60.000$: /flats 20000 60000
-    \n Двухкомнатные от 40.000$ до 70.000$: /flats 40000 70000 2
-    \n Трехкомнатные от 50 кв.м. до 90 кв.м.: /flats 0 1000000 3 50 90
-    \n Однокомнатные годом постройки от 1970 до 2010: /flats 0 1000000 1 0 100 1970 2010
-    \n Все параметры: \`\`\`/flats priceMin priceMax numberOfRooms areaMin areaMax buildingYearMin buildingYearMax fromDate toDate metersToSubway resale outermostFloor currency\`\`\``;
+  return `Введите /flats чтобы увидеть новые объявления о квартирах сегодня\nПримеры с параметрами:\nКвартиры от 20.000$ до 60.000$: /flats 20000 60000\nДвухкомнатные от 40.000$ до 70.000$: /flats 40000 70000 2\nТрехкомнатные от 50 кв.м. до 90 кв.м.: /flats 0 1000000 3 50 90\nОднокомнатные годом постройки от 1970 до 2010: /flats 0 1000000 1 0 100 1970 2010\nВсе параметры: \`\`\` /flats priceMin priceMax numberOfRooms areaMin areaMax buildingYearMin buildingYearMax fromDate toDate metersToSubway resale outermostFloor currency\`\`\``;
 };
 
 const formatFlatsMessage = (flats, config) =>
