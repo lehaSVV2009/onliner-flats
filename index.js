@@ -88,10 +88,9 @@ exports.handler = async event => {
 
     await telegramApi.sendMessage(
       config.chatId,
-      `Новые однушки у метро с Онлайнера: ${filteredApartments
-        .map(apartment => apartment.url)
-        .join(" ")}
-      \nНастройки: ${JSON.stringify(config, null, 2)}`
+      `#onliner-flats
+      \n${filteredApartments.map(apartment => apartment.url).join(" ")}
+      \nНастройки: \n\`\`\`${JSON.stringify(config, null, 2)}\`\`\``
     );
 
     console.log("Success");
@@ -109,28 +108,40 @@ exports.handler = async event => {
 };
 
 const toConfig = event => {
-  if (isTelegramEvent(event)) {
-    const message = parseTelegramMessage(event);
-    try {
-      const telegramConfig = JSON.parse(message.text.trim());
-      return {
-        ...DEFAULT_CONFIG,
-        ...telegramConfig,
-        chatId: message.chat.id
-      };
-    } catch (e) {
-      return DEFAULT_CONFIG;
-    }
+  if (!isTelegramEvent(event)) {
+    return event.queryStringParameters
+      ? {
+          ...DEFAULT_CONFIG,
+          ...event.queryStringParameters
+        }
+      : DEFAULT_CONFIG;
   }
 
-  if (event.queryStringParameters) {
+  const message = parseTelegramMessage(event);
+
+  if (!message.text) {
+    return DEFAULT_CONFIG;
+  }
+
+  const jsonStartIndex = message.text.indexOf("{");
+  const jsonLastIndex = message.text.lastIndexOf("}");
+
+  if (jsonStartIndex === -1 || jsonLastIndex === -1) {
+    return DEFAULT_CONFIG;
+  }
+
+  try {
+    const telegramConfig = JSON.parse(
+      message.text.substring(jsonStartIndex, jsonLastIndex + 1)
+    );
     return {
       ...DEFAULT_CONFIG,
-      ...event.queryStringParameters
+      ...telegramConfig,
+      chatId: message.chat.id
     };
+  } catch (e) {
+    return DEFAULT_CONFIG;
   }
-
-  return DEFAULT_CONFIG;
 };
 
 /**
@@ -175,7 +186,8 @@ const isTelegramStartOrHelpEvent = event => {
 };
 
 const START_MESSAGE = `
-Скопируйте и вставьте мне следующее сообщение:
+Скопируйте и вставьте мне следующее сообщение _(можете поменять значения)_:
+\`\`\`
 {
   "fromDate": "${moment()
     .subtract(1, "days")
@@ -193,4 +205,5 @@ const START_MESSAGE = `
   "outermostFloor": "false",
   "metersToSubway": 3000  
 }
+\`\`\`
 `;

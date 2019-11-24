@@ -10,12 +10,19 @@ const client = axios.create({
  * @param {string} text
  * @returns {Promise}
  */
-exports.sendMessage = async (chatId, message) => {
+exports.sendMessage = async (
+  chatId,
+  message,
+  parseMode = "Markdown",
+  disableWebPagePreview = true
+) => {
   const response = await client.post(
     `/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
     {
       chat_id: chatId,
-      text: message
+      text: message,
+      parse_mode: parseMode,
+      disable_web_page_preview: disableWebPagePreview
     }
   );
 
