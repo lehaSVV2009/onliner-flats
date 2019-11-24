@@ -56,7 +56,7 @@ const DEFAULT_CONFIG = {
     .subtract(1, "days")
     .toDate(),
   toDate: moment().toDate(),
-  metersToSubway: 4000
+  metersToSubway: 3000
 };
 
 exports.handler = async event => {
