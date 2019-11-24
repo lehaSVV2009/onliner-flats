@@ -147,19 +147,19 @@ const toConfig = event => {
     currency
   ] = args;
 
-  if (priceMin) {
+  if (priceMin || Number(priceMin) === 0) {
     config.priceMin = priceMin;
   }
-  if (priceMin) {
+  if (priceMax || Number(priceMax) === 0) {
     config.priceMax = priceMax;
   }
   if (numberOfRooms) {
     config.numberOfRooms = numberOfRooms;
   }
-  if (areaMin) {
+  if (areaMin || Number(areaMin) === 0) {
     config.areaMin = areaMin;
   }
-  if (areaMax) {
+  if (areaMax || Number(areaMax) === 0) {
     config.areaMax = areaMin;
   }
   if (buildingYearMin) {
