@@ -104,10 +104,8 @@ exports.handler = async event => {
         )
     );
 
-    await telegramApi.sendMessage(
-      config.chatId,
-      formatFlatsMessage(filteredFlats, config)
-    );
+    const flatsMessage = formatFlatsMessage(filteredFlats, config);
+    await telegramApi.sendMessage(config.chatId, flatsMessage);
 
     console.log("Success");
     return {
@@ -240,12 +238,12 @@ const formatStartMessage = config => {
  * @returns {string}
  */
 const formatFlatsMessage = (flats, config) =>
-  "#onliner_flats" +
-  `\n${flats
+  "Онлайнер Квартиры" +
+  `\n\n${flats
     .map(
       flat =>
         `${flat.price.amount} ${flat.price.currency}\n${flat.location.address}\n${flat.url}`
     )
-    .join("\n")} ` +
-  `\nНастройки: \`\`\`json\n${JSON.stringify(config, null, 2)}\`\`\`` +
+    .join("\n\n")} ` +
+  `\n\nНастройки: \`\`\`json\n${JSON.stringify(config, null, 2)}\`\`\`` +
   "\nНажми /help чтобы увидеть примеры использования";
