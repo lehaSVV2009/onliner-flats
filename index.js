@@ -1,63 +1,11 @@
 require("dotenv").config();
 
-const { getDistance } = require("geolib");
 const parseArgs = require("minimist");
 const moment = require("moment");
 
-const onlinerApi = require("./onlinerApi");
+const { findFlats } = require("./flats");
 const telegramApi = require("./telegramApi");
 
-const MINSK_SUBWAY_COORDINATES = [
-  // Malinovka-Uruch'e
-  { latitude: 53.864158, longitude: 27.485512 },
-  { latitude: 53.849176, longitude: 27.474448 },
-  { latitude: 53.876678, longitude: 27.496891 },
-  { latitude: 53.886731, longitude: 27.514831 },
-  { latitude: 53.885966, longitude: 27.539919 },
-  { latitude: 53.893208, longitude: 27.548023 },
-  { latitude: 53.902106, longitude: 27.562023 },
-  { latitude: 53.909136, longitude: 27.575755 },
-  { latitude: 53.916035, longitude: 27.583276 },
-  { latitude: 53.921998, longitude: 27.599417 },
-  { latitude: 53.924211, longitude: 27.613534 },
-  { latitude: 53.927858, longitude: 27.627354 },
-  { latitude: 53.934456, longitude: 27.651273 },
-  { latitude: 53.938671, longitude: 27.666422 },
-  { latitude: 53.945313, longitude: 27.687981 },
-  // Kamenka-Mogilevskaya
-  { latitude: 53.906901, longitude: 27.437447 },
-  { latitude: 53.906269, longitude: 27.454397 },
-  { latitude: 53.908514, longitude: 27.480807 },
-  { latitude: 53.908514, longitude: 27.480807 },
-  { latitude: 53.906933, longitude: 27.523477 },
-  { latitude: 53.905327, longitude: 27.539393 },
-  { latitude: 53.905327, longitude: 27.539393 },
-  { latitude: 53.900679, longitude: 27.562093 },
-  { latitude: 53.893835, longitude: 27.570201 },
-  { latitude: 53.890293, longitude: 27.585399 },
-  { latitude: 53.889757, longitude: 27.614338 },
-  { latitude: 53.875813, longitude: 27.629173 },
-  { latitude: 53.869212, longitude: 27.648618 },
-  { latitude: 53.862264, longitude: 27.674146 }
-];
-
-/**
- * @typedef Config
- * @property {number} chatId
- * @property {number} priceMin
- * @property {number} priceMax
- * @property {string} currency
- * @property {number} numberOfRooms
- * @property {number} areaMin
- * @property {number} areaMax
- * @property {number} buildingYearMin
- * @property {number} buildingYearMax
- * @property {string} resale
- * @property {string} outermostFloor
- * @property {date} fromDate
- * @property {date} toDate
- * @property {number} metersToSubway
- */
 const DEFAULT_CONFIG = {
   chatId: `${process.env.TELEGRAM_CHAT_ID}`,
   priceMin: 10000,
@@ -77,41 +25,45 @@ const DEFAULT_CONFIG = {
   metersToSubway: 10000
 };
 
-exports.handler = async event => {
+const EVENT_TYPE = {
+  TELEGRAM_START: "TELEGRAM_START",
+  TELEGRAM_HELP: "TELEGRAM_HELP",
+  TELEGRAM_FLATS: "TELEGRAM_FLATS",
+  URL_FLATS: "URL_FLATS"
+};
+
+const handler = async event => {
   console.log(event);
 
   try {
-    if (isTelegramStartOrHelpEvent(event)) {
-      const message = parseTelegramMessage(event);
-      await telegramApi.sendMessage(
-        message.chat.id,
-        formatStartMessage(DEFAULT_CONFIG)
-      );
-      return { statusCode: 200, body: JSON.stringify({ status: "ok" }) };
+    const type = resolveEventType(event);
+
+    switch (type) {
+      case EVENT_TYPE.TELEGRAM_START:
+      case EVENT_TYPE.TELEGRAM_HELP: {
+        await sendHelpMessageToTelegram(event);
+        return { statusCode: 200, body: JSON.stringify({ status: "ok" }) };
+      }
+      case EVENT_TYPE.TELEGRAM_FLATS: {
+        const config = parseTelegramConfig(event);
+        const flats = await findFlats(config);
+
+        await sendFlatsMessageToTelegram(flats, config);
+
+        return { statusCode: 200, body: JSON.stringify({ flats }) };
+      }
+      case EVENT_TYPE.URL_FLATS:
+      default: {
+        const config = parseUrlConfig(event);
+        const flats = await findFlats(config);
+
+        if (!config.skipTelegramIfEmpty) {
+          await sendFlatsMessageToTelegram(flats, config);
+        }
+
+        return { statusCode: 200, body: JSON.stringify({ flats }) };
+      }
     }
-
-    const config = toConfig(event);
-
-    const { apartments: flats } = await onlinerApi.fetchApartments(config);
-
-    const filteredFlats = flats.filter(
-      flat =>
-        moment(flat.created_at).isBetween(config.fromDate, config.toDate) &&
-        MINSK_SUBWAY_COORDINATES.some(
-          subwayCoordinates =>
-            getDistance(subwayCoordinates, flat.location) <
-            config.metersToSubway
-        )
-    );
-
-    const flatsMessage = formatFlatsMessage(filteredFlats, config);
-    await telegramApi.sendMessage(config.chatId, flatsMessage);
-
-    console.log("Success");
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ flats: filteredFlats })
-    };
   } catch (e) {
     console.log("Error", e);
     return {
@@ -121,16 +73,55 @@ exports.handler = async event => {
   }
 };
 
-const toConfig = event => {
-  if (!isTelegramEvent(event)) {
-    return event.queryStringParameters
-      ? {
-          ...DEFAULT_CONFIG,
-          ...event.queryStringParameters
-        }
-      : DEFAULT_CONFIG;
+/**
+ * @param {any} event
+ * @return {string} event type
+ */
+const resolveEventType = event => {
+  if (!event || !event.body) {
+    return EVENT_TYPE.URL_FLATS;
   }
+  try {
+    const body = JSON.parse(event.body);
+    const text = body && body.message && body.message.text;
+    if (!text) {
+      return EVENT_TYPE.TELEGRAM_FLATS;
+    }
+    if (text.includes("/start")) {
+      return EVENT_TYPE.TELEGRAM_START;
+    }
+    if (text.includes("/help")) {
+      return EVENT_TYPE.TELEGRAM_HELP;
+    }
+    return EVENT_TYPE.TELEGRAM_FLATS;
+  } catch (e) {
+    return EVENT_TYPE.URL_FLATS;
+  }
+};
 
+const sendHelpMessageToTelegram = async event => {
+  const message = parseTelegramMessage(event);
+  await telegramApi.sendMessage(
+    message.chat.id,
+    formatStartMessage(DEFAULT_CONFIG)
+  );
+};
+
+const sendFlatsMessageToTelegram = async (flats, config) => {
+  const flatsMessage = formatFlatsMessage(flats, config);
+  await telegramApi.sendMessage(config.chatId, flatsMessage);
+};
+
+const parseUrlConfig = event => {
+  return event && event.queryStringParameters
+    ? {
+        ...DEFAULT_CONFIG,
+        ...event.queryStringParameters
+      }
+    : DEFAULT_CONFIG;
+};
+
+const parseTelegramConfig = event => {
   const message = parseTelegramMessage(event);
 
   const config = { ...DEFAULT_CONFIG };
@@ -138,11 +129,15 @@ const toConfig = event => {
     config.chatId = message.chat.id;
   }
 
-  if (!message.text || !message.text.startsWith("/flats")) {
+  if (!message.text || !message.text.trim().startsWith("/flats")) {
     return config;
   }
 
-  const telegramConfig = parseArgs(message.text.replace("/flats", "")) || {};
+  const argv = message.text
+    .trim()
+    .replace("/flats", "")
+    .match(/\S+/g);
+  const telegramConfig = parseArgs(argv) || {};
 
   return {
     ...config,
@@ -159,36 +154,7 @@ const toConfig = event => {
  * @returns {Message}
  */
 const parseTelegramMessage = event => {
-  const { message } = JSON.parse(event.body);
-  return message;
-};
-
-/**
- * @param {Object} event
- * @returns {boolean}
- */
-const isTelegramEvent = event => {
-  if (!event || !event.body) {
-    return false;
-  }
-  try {
-    const body = JSON.parse(event.body);
-    return body && body.message && body.message.text;
-  } catch (e) {
-    return false;
-  }
-};
-
-/**
- * @param {Object} event
- * @returns {boolean}
- */
-const isTelegramStartOrHelpEvent = event => {
-  if (!isTelegramEvent(event)) {
-    return false;
-  }
-  const message = parseTelegramMessage(event);
-  return message.text === "/start" || message.text === "/help";
+  return JSON.parse(event.body).message;
 };
 
 /**
@@ -214,12 +180,12 @@ const formatStartMessage = config => {
     "\n`/flats --metersToSubway=3000` - максимум 3км до ближайшего метро" +
     "\n`/flats --fromDate=2019-11-01 --toDate=2019-11-10` - появившиеся в продаже с 1 по 10 ноября 2019 года" +
     "\n\n Параметры по умолчанию:" +
-    "\n```\n/flats " +
-    `--priceMin=${startConfig.priceMin}` +
-    `--priceMax=${startConfig.priceMax}` +
-    `--numberOfRooms=${startConfig.numberOfRooms}` +
-    `--areaMin=${startConfig.areaMin}` +
-    ` --areaMax=${startConfig.areaMin}` +
+    "\n```\n/flats" +
+    ` --priceMin=${startConfig.priceMin}` +
+    ` --priceMax=${startConfig.priceMax}` +
+    ` --numberOfRooms=${startConfig.numberOfRooms}` +
+    ` --areaMin=${startConfig.areaMin}` +
+    ` --areaMax=${startConfig.areaMax}` +
     ` --buildingYearMin=${startConfig.buildingYearMin}` +
     ` --buildingYearMax=${startConfig.buildingYearMax}` +
     ` --fromDate=${startConfig.fromDate}` +
@@ -247,3 +213,10 @@ const formatFlatsMessage = (flats, config) =>
     .join("\n\n")} ` +
   `\n\nНастройки: \`\`\`json\n${JSON.stringify(config, null, 2)}\`\`\`` +
   "\nНажми /help чтобы увидеть примеры использования";
+
+exports.DEFAULT_CONFIG = DEFAULT_CONFIG;
+exports.EVENT_TYPE = EVENT_TYPE;
+exports.handler = handler;
+exports.resolveEventType = resolveEventType;
+exports.parseTelegramConfig = parseTelegramConfig;
+exports.parseUrlConfig = parseUrlConfig;

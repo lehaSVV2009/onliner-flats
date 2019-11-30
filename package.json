@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "zip -r build.zip *",
-    "test": "node -e \"console.log(require('./index').handler({}));\"",
-    "debug": "node -e \"console.log(require('./index').handler({}));\" --inspect-brk"
+    "start": "node -e \"console.log(require('./index').handler({}));\"",
+    "debug": "node -e \"console.log(require('./index').handler({}));\" --inspect-brk",
+    "test": "mocha '**/*.test.js' --exclude 'node_modules/**/*.test.js'"
   },
   "dependencies": {
     "axios": "^0.19.0",
@@ -14,5 +15,9 @@
     "geolib": "^3.1.0",
     "minimist": "^1.2.0",
     "moment": "^2.24.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.2.2"
   }
 }

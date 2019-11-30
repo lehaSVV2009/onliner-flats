@@ -41,6 +41,7 @@ const client = axios.create({
  *
  * @returns {Promise<ApartmentResponse>}
  */
+// TODO add multiple params (numberOfRooms, walling)
 exports.fetchApartments = async ({
   priceMin,
   priceMax,
