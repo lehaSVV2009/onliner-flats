@@ -208,7 +208,10 @@ const formatFlatsMessage = (flats, config) =>
   `\n\n${flats
     .map(
       flat =>
-        `${flat.price.amount} ${flat.price.currency}\n${flat.location.address}\n${flat.url}`
+        `${flat.price.amount} ${flat.price.currency}` +
+        `\n${flat.location.address}` +
+        `\n${flat.closestSubwayDistance} метров до метро` +
+        `\n${flat.url}`
     )
     .join("\n\n")} ` +
   `\n\nНастройки: \`\`\`json\n${JSON.stringify(config, null, 2)}\`\`\`` +

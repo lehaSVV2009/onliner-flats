@@ -68,7 +68,7 @@ describe("index", () => {
     it(`should parse telegram message to valid json config`, () => {
       const event = {
         body:
-          '{ "message": { "text": " /flats' +
+          '{ "message": { "chat": { "id": 123 }, "text": " /flats' +
           "  --priceMin=123" +
           " --priceMax=456" +
           " --numberOfRooms=2" +
@@ -86,6 +86,7 @@ describe("index", () => {
 
       const config = parseTelegramConfig(event);
       expect(config).to.include({
+        chatId: 123,
         priceMin: 123,
         priceMax: 456,
         numberOfRooms: 2,
