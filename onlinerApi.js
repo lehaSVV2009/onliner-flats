@@ -42,25 +42,22 @@ const client = axios.create({
  *
  * @returns {Promise<ApartmentResponse>}
  */
-// TODO add multiple params (numberOfRooms, walling)
 exports.fetchApartments = async ({
   priceMin,
   priceMax,
-  currency,
   numberOfRooms,
   areaMin,
   areaMax,
   buildingYearMin,
   buildingYearMax,
   resale,
-  outermostFloor
+  outermostFloor,
+  walling
 }) => {
   const params = {
     "price[min]": priceMin >= 1 && priceMin <= 2300000 ? priceMin : 1,
     "price[max]": priceMax >= 1 && priceMax <= 2300000 ? priceMax : 2300000,
-    currency: currency || "usd",
-    "number_of_rooms[]":
-      numberOfRooms >= 1 && numberOfRooms <= 4 ? numberOfRooms : 1,
+    currency: "usd",
     "area[min]": areaMin >= 1 && areaMin <= 1000 ? areaMin : 1,
     "area[max]": areaMax >= 1 && areaMax <= 1000 ? areaMax : 1000,
     "building_year[min]":
@@ -73,6 +70,16 @@ exports.fetchApartments = async ({
         : 2029
   };
 
+  if (Array.isArray(numberOfRooms)) {
+    params["number_of_rooms[]"] = numberOfRooms.map(number =>
+      number >= 1 && number <= 4 ? number : 1
+    );
+  }
+
+  if (Array.isArray(walling)) {
+    params["walling[]"] = walling;
+  }
+
   if (resale) {
     params.resale = resale;
   }
@@ -83,9 +90,7 @@ exports.fetchApartments = async ({
 
   const response = await client.get("/search/apartments", {
     params,
-    paramsSerializer: params => {
-      return qs.stringify(params, { indices: false });
-    }
+    paramsSerializer: params => qs.stringify(params, { indices: false })
   });
   return response.data;
 };

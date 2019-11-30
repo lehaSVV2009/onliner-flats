@@ -11,11 +11,12 @@ const DEFAULT_CONFIG = {
   priceMin: 1,
   priceMax: 2300000,
   currency: "usd",
-  numberOfRooms: 1,
+  numberOfRooms: [1, 2],
   areaMin: 1,
   areaMax: 1000,
   buildingYearMin: 1900,
   buildingYearMax: 2029,
+  walling: [],
   fromDate: moment()
     .subtract(1, "days")
     .toDate(),
@@ -43,6 +44,7 @@ const handler = async event => {
         return { statusCode: 200, body: JSON.stringify({ status: "ok" }) };
       }
       case EVENT_TYPE.TELEGRAM_FLATS: {
+        // TODO add Joi.assert
         const config = parseTelegramConfig(event);
         const flats = await findFlats(config);
 
@@ -53,6 +55,7 @@ const handler = async event => {
       case EVENT_TYPE.URL_FLATS:
       default: {
         const config = parseUrlConfig(event);
+        // TODO add Joi.assert
         const flats = await findFlats(config);
 
         if (!config.skipTelegramIfEmpty) {
@@ -100,7 +103,7 @@ const resolveEventType = event => {
 const sendHelpMessageToTelegram = async event => {
   const message = parseTelegramMessage(event);
   await telegramApi.sendMessage(
-    message.chat.id,
+    (message.chat && message.chat.id) || process.env.TELEGRAM_CHAT_ID,
     formatStartMessage(DEFAULT_CONFIG)
   );
 };
@@ -111,13 +114,23 @@ const sendFlatsMessageToTelegram = async (flats, config) => {
 };
 
 const parseUrlConfig = event => {
-  // TODO replace with multiValueQueryStringParameters
-  return event && event.queryStringParameters
-    ? {
-        ...DEFAULT_CONFIG,
-        ...event.queryStringParameters
-      }
-    : DEFAULT_CONFIG;
+  if (!event || !event.queryStringParameters) {
+    return DEFAULT_CONFIG;
+  }
+
+  const config = {
+    ...DEFAULT_CONFIG,
+    ...event.queryStringParameters
+  };
+
+  if (config.numberOfRooms) {
+    config.numberOfRooms = event.multiValueQueryStringParameters.numberOfRooms;
+  }
+  if (config.walling) {
+    config.walling = event.multiValueQueryStringParameters.walling;
+  }
+
+  return config;
 };
 
 const parseTelegramConfig = event => {
@@ -140,6 +153,17 @@ const parseTelegramConfig = event => {
 
   const argv = text.replace("/flats", "").match(/\S+/g);
   const telegramConfig = parseArgs(argv) || {};
+
+  // Set potentially multiple options as always multiple
+  if (
+    telegramConfig.numberOfRooms &&
+    !Array.isArray(telegramConfig.numberOfRooms)
+  ) {
+    telegramConfig.numberOfRooms = [telegramConfig.numberOfRooms];
+  }
+  if (telegramConfig.walling && !Array.isArray(telegramConfig.walling)) {
+    telegramConfig.walling = [telegramConfig.walling];
+  }
 
   return {
     ...config,
@@ -176,16 +200,20 @@ const formatStartMessage = config => {
     "\n`/flats --priceMin=20000 --priceMax=60000` - квартиры от 20.000$ до 60.000$" +
     "\n`/flats --numberOfRooms=2` - двухкомнатные квартиры" +
     "\n`/flats --numberOfRooms=3 --areaMin=50 --areaMax=90` - трехкомнатные от 50 кв.м. до 90 кв.м." +
+    "\n`/flats --numberOfRooms=1 --numberOfRooms=2` - только одно или двухкомнатные квартиры" +
     "\n`/flats --buildingYearMin=1970 --buildingYearMax=2010` - годом постройки от 1970 до 2010" +
     "\n`/flats --resale=false` - только новостройки" +
     "\n`/flats --outermostFloor=true` - не первый и не последний этажи" +
     "\n`/flats --metersToSubway=3000` - максимум 3км до ближайшего метро" +
+    "\n`/flats --walling=brick --walling=monolith` - только кирпич или монолит (возможные варианты: `brick`, `monolith`, `block`, `panel`)" +
     "\n`/flats --fromDate=2019-11-01 --toDate=2019-11-10` - появившиеся в продаже с 1 по 10 ноября 2019 года" +
     "\n\n Параметры по умолчанию:" +
     "\n```\n/flats" +
     ` --priceMin=${startConfig.priceMin}` +
     ` --priceMax=${startConfig.priceMax}` +
-    ` --numberOfRooms=${startConfig.numberOfRooms}` +
+    ` ${startConfig.numberOfRooms
+      .map(numberOfRooms => `--numberOfRooms=${numberOfRooms}`)
+      .join(" ")}` +
     ` --areaMin=${startConfig.areaMin}` +
     ` --areaMax=${startConfig.areaMax}` +
     ` --buildingYearMin=${startConfig.buildingYearMin}` +
@@ -193,7 +221,6 @@ const formatStartMessage = config => {
     ` --fromDate=${startConfig.fromDate}` +
     ` --toDate=${startConfig.toDate}` +
     ` --metersToSubway=${startConfig.metersToSubway}` +
-    ` --currency=${startConfig.currency}` +
     "```"
   );
 };

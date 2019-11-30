@@ -71,11 +71,15 @@ describe("index", () => {
           '{ "message": { "chat": { "id": 123 }, "text": " /flats' +
           "  --priceMin=123" +
           " --priceMax=456" +
+          " --numberOfRooms=1" +
           " --numberOfRooms=2" +
           " --areaMin=47" +
           " --areaMax=96" +
           " --buildingYearMin=1980" +
           " --buildingYearMax=2011" +
+          " --walling=block" +
+          " --walling=monolith" +
+          " --walling=brick" +
           " --fromDate=2019-11-30" +
           " --toDate=2019-12-01" +
           " --metersToSubway=10000" +
@@ -85,11 +89,11 @@ describe("index", () => {
       };
 
       const config = parseTelegramConfig(event);
+
       expect(config).to.include({
         chatId: 123,
         priceMin: 123,
         priceMax: 456,
-        numberOfRooms: 2,
         areaMin: 47,
         areaMax: 96,
         buildingYearMin: 1980,
@@ -100,6 +104,8 @@ describe("index", () => {
         outermostFloor: "false",
         currency: "usd"
       });
+      expect(config.numberOfRooms).to.have.members([1, 2]);
+      expect(config.walling).to.have.members(["block", "monolith", "brick"]);
     });
   });
 });
