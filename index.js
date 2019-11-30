@@ -214,7 +214,7 @@ const formatStartMessage = config => {
     "\n`/flats --metersToSubway=3000` - максимум 3км до ближайшего метро" +
     "\n`/flats --fromDate=2019-11-01 --toDate=2019-11-10` - появившиеся в продаже с 1 по 10 ноября 2019 года" +
     "\n\n Параметры по умолчанию:" +
-    "\n```/flats " +
+    "\n```\n/flats " +
     `--priceMin=${startConfig.priceMin}` +
     `--priceMax=${startConfig.priceMax}` +
     `--numberOfRooms=${startConfig.numberOfRooms}` +
