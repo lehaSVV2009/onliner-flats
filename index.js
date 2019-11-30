@@ -206,7 +206,7 @@ const formatStartMessage = config => {
  * @returns {string}
  */
 const formatFlatsMessage = (flats, config) =>
-  "Онлайнер Квартиры" +
+  "Онлайнер новые предложения квартир за день" +
   `\n\n${flats
     .map(
       flat =>
