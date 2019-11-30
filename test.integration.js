@@ -13,12 +13,22 @@ describe("integration tests", () => {
     expect(response.statusCode).equal(200);
   });
 
+  it.skip("should send to specific telegram chat on /flats", async () => {
+    const event = {
+      body: JSON.stringify({
+        message: { text: "/flats", chat: { id: "-351403469" } }
+      })
+    };
+    const response = await handler(event);
+    expect(response.statusCode).equal(200);
+  });
+
   it.skip("should send message to telegram on /flats with options", async () => {
     const event = {
       body: JSON.stringify({
         message: {
           text:
-            "/flats --priceMin=10000 --priceMax=500000 --numberOfRooms=1 --areaMin=1 --areaMax=1000 --buildingYearMin=1950 --buildingYearMax=2029 --fromDate=2019-11-01 --toDate=2019-12-01 --metersToSubway=2000Z --resale=true --outermostFloor=true --currency=usd"
+            "/flats --priceMin=10000 --priceMax=500000 --numberOfRooms=1 --areaMin=1 --areaMax=1000 --buildingYearMin=1950 --buildingYearMax=2029 --fromDate=2019-11-01 --toDate=2019-12-01 --metersToSubway=2000 --resale=true --outermostFloor=true --currency=usd"
         }
       })
     };

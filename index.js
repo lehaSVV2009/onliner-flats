@@ -16,7 +16,6 @@ const DEFAULT_CONFIG = {
   areaMax: 1000,
   buildingYearMin: 1900,
   buildingYearMax: 2029,
-  resale: "true",
   fromDate: moment()
     .subtract(1, "days")
     .toDate(),
@@ -112,6 +111,7 @@ const sendFlatsMessageToTelegram = async (flats, config) => {
 };
 
 const parseUrlConfig = event => {
+  // TODO replace with multiValueQueryStringParameters
   return event && event.queryStringParameters
     ? {
         ...DEFAULT_CONFIG,
@@ -193,8 +193,6 @@ const formatStartMessage = config => {
     ` --fromDate=${startConfig.fromDate}` +
     ` --toDate=${startConfig.toDate}` +
     ` --metersToSubway=${startConfig.metersToSubway}` +
-    ` --resale=${startConfig.resale}` +
-    ` --outermostFloor=${startConfig.outermostFloor}` +
     ` --currency=${startConfig.currency}` +
     "```"
   );

@@ -1,4 +1,5 @@
 const axios = require("axios");
+const qs = require("qs");
 
 const client = axios.create({
   baseURL: process.env.ONLINER_API_URL || "https://pk.api.onliner.by",
@@ -69,14 +70,22 @@ exports.fetchApartments = async ({
     "building_year[max]":
       buildingYearMax >= 1900 && buildingYearMax <= 2029
         ? buildingYearMax
-        : 2029,
-    resale
+        : 2029
   };
+
+  if (resale) {
+    params.resale = resale;
+  }
 
   if (outermostFloor) {
     params.outermostFloor = "true";
   }
 
-  const response = await client.get("/search/apartments", { params });
+  const response = await client.get("/search/apartments", {
+    params,
+    paramsSerializer: params => {
+      return qs.stringify(params, { indices: false });
+    }
+  });
   return response.data;
 };
