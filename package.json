@@ -7,7 +7,8 @@
     "build": "zip -r build.zip *",
     "start": "node -e \"console.log(require('./index').handler({}));\"",
     "debug": "node -e \"console.log(require('./index').handler({}));\" --inspect-brk",
-    "test": "mocha '**/*.test.js' --exclude 'node_modules/**/*.test.js'"
+    "test": "mocha '**/*.test.js' --exclude 'node_modules/**/*.test.js'",
+    "integration": "mocha --timeout 15000 '**/*.integration.js'"
   },
   "dependencies": {
     "axios": "^0.19.0",
