@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const { getDistance } = require("geolib");
+const parseArgs = require("minimist");
 const moment = require("moment");
 
 const onlinerApi = require("./onlinerApi");
@@ -40,15 +41,32 @@ const MINSK_SUBWAY_COORDINATES = [
   { latitude: 53.862264, longitude: 27.674146 }
 ];
 
+/**
+ * @typedef Config
+ * @property {number} chatId
+ * @property {number} priceMin
+ * @property {number} priceMax
+ * @property {string} currency
+ * @property {number} numberOfRooms
+ * @property {number} areaMin
+ * @property {number} areaMax
+ * @property {number} buildingYearMin
+ * @property {number} buildingYearMax
+ * @property {string} resale
+ * @property {string} outermostFloor
+ * @property {date} fromDate
+ * @property {date} toDate
+ * @property {number} metersToSubway
+ */
 const DEFAULT_CONFIG = {
   chatId: `${process.env.TELEGRAM_CHAT_ID}`,
-  priceMin: 34750,
-  priceMax: 50500,
+  priceMin: 10000,
+  priceMax: 500000,
   currency: "usd",
   numberOfRooms: 1,
-  areaMin: 30,
+  areaMin: 1,
   areaMax: 1000,
-  buildingYearMin: 1980,
+  buildingYearMin: 1950,
   buildingYearMax: 2029,
   resale: "true",
   outermostFloor: "false",
@@ -126,68 +144,12 @@ const toConfig = event => {
     return config;
   }
 
-  const args = message.text
-    .replace("/flats", "")
-    .trim()
-    .split(" ");
+  const telegramConfig = parseArgs(message.text.replace("/flats", "")) || {};
 
-  const [
-    priceMin,
-    priceMax,
-    numberOfRooms,
-    areaMin,
-    areaMax,
-    buildingYearMin,
-    buildingYearMax,
-    fromDate,
-    toDate,
-    metersToSubway,
-    resale,
-    outermostFloor,
-    currency
-  ] = args;
-
-  if (priceMin || Number(priceMin) === 0) {
-    config.priceMin = priceMin;
-  }
-  if (priceMax || Number(priceMax) === 0) {
-    config.priceMax = priceMax;
-  }
-  if (numberOfRooms) {
-    config.numberOfRooms = numberOfRooms;
-  }
-  if (areaMin || Number(areaMin) === 0) {
-    config.areaMin = areaMin;
-  }
-  if (areaMax || Number(areaMax) === 0) {
-    config.areaMax = areaMin;
-  }
-  if (buildingYearMin) {
-    config.buildingYearMin = buildingYearMin;
-  }
-  if (buildingYearMax) {
-    config.buildingYearMax = buildingYearMax;
-  }
-  if (fromDate) {
-    config.fromDate = fromDate;
-  }
-  if (toDate) {
-    config.toDate = toDate;
-  }
-  if (metersToSubway) {
-    config.metersToSubway = metersToSubway;
-  }
-  if (resale) {
-    config.resale = resale;
-  }
-  if (outermostFloor) {
-    config.outermostFloor = outermostFloor;
-  }
-  if (currency) {
-    config.currency = currency;
-  }
-
-  return config;
+  return {
+    ...config,
+    ...telegramConfig
+  };
 };
 
 /**
@@ -231,6 +193,10 @@ const isTelegramStartOrHelpEvent = event => {
   return message.text === "/start" || message.text === "/help";
 };
 
+/**
+ * @param {Config} config
+ * @returns {string}
+ */
 const formatStartMessage = config => {
   const { chatId, ...startConfig } = config;
   startConfig.fromDate = moment().format("YYYY-MM-DD");
@@ -238,14 +204,48 @@ const formatStartMessage = config => {
     .add(1, "days")
     .format("YYYY-MM-DD");
 
-  return `Введите /flats чтобы увидеть новые объявления о квартирах сегодня\n\nПримеры с параметрами:\nКвартиры от 20.000$ до 60.000$: \`/flats 20000 60000\`\nДвухкомнатные от 40.000$ до 70.000$: \`/flats 40000 70000 2\`\nТрехкомнатные от 50 кв.м. до 90 кв.м.: \`/flats 0 1000000 3 50 90\`\nОднокомнатные годом постройки от 1970 до 2010: \`/flats 0 1000000 1 0 100 1970 2010\`\n\nВсе параметры: \`\`\`\n/flats priceMin priceMax numberOfRooms areaMin areaMax buildingYearMin buildingYearMax fromDate toDate metersToSubway resale outermostFloor currency\`\`\``;
+  return (
+    "Введите /flats чтобы увидеть НОВЫЕ объявления о квартирах сегодня" +
+    "\n\nПримеры:" +
+    "\n`/flats --priceMin=20000 --priceMax=60000` - квартиры от 20.000$ до 60.000$" +
+    "\n`/flats --numberOfRooms=2` - двухкомнатные квартиры" +
+    "\n`/flats --numberOfRooms=3 --areaMin=50 --areaMax=90` - трехкомнатные от 50 кв.м. до 90 кв.м." +
+    "\n`/flats --buildingYearMin=1970 --buildingYearMax=2010` - годом постройки от 1970 до 2010" +
+    "\n`/flats --metersToSubway=3000 - максимум 3км до ближайшего метро" +
+    "\n`/flats --fromDate=2019-11-01 --toDate=2019-11-10 - появившиеся в продаже с 1 по 10 ноября 2019 года" +
+    "\n`/flats --resale=false - только новостройки" +
+    "\n`/flats --outermostFloor=true - не первый и не последний этажи" +
+    "\n\n Параметры по умолчанию:" +
+    "\n`/flats " +
+    `--priceMin=${startConfig.priceMin}` +
+    `--priceMax=${startConfig.priceMax}` +
+    `--numberOfRooms=${startConfig.numberOfRooms}` +
+    `--areaMin=${startConfig.areaMin}` +
+    ` --areaMax=${startConfig.areaMin}` +
+    ` --buildingYearMin=${startConfig.buildingYearMin}` +
+    ` --buildingYearMax=${startConfig.buildingYearMax}` +
+    ` --fromDate=${startConfig.fromDate}` +
+    ` --toDate=${startConfig.toDate}` +
+    ` --metersToSubway=${startConfig.metersToSubway}` +
+    ` --resale=${startConfig.resale}` +
+    ` --outermostFloor=${startConfig.outermostFloor}` +
+    ` --currency=${startConfig.currency}` +
+    "`"
+  );
 };
 
+/**
+ * @param {import("./onlinerApi").Apartment[]} flats
+ * @param {Config} config
+ * @returns {string}
+ */
 const formatFlatsMessage = (flats, config) =>
-  `#onliner\\_flats \n${flats
-    .map(flat => flat.url)
-    .join(" ")} \nНастройки: \`\`\`json\n${JSON.stringify(
-    config,
-    null,
-    2
-  )}\`\`\` \n Нажми /help чтобы увидеть дополнительные параметры`;
+  "#onliner_flats" +
+  `\n${flats
+    .map(
+      flat =>
+        `${flat.price.amount} ${flat.price.currency}\n${flat.location.address}\n${flat.url}`
+    )
+    .join("\n")} ` +
+  `\nНастройки: \`\`\`json\n${JSON.stringify(config, null, 2)}\`\`\`` +
+  "\nНажми /help чтобы увидеть примеры использования";
