@@ -54,19 +54,29 @@ exports.fetchApartments = async ({
   resale,
   outermostFloor
 }) => {
-  const response = await client.get("/search/apartments", {
-    params: {
-      "price[min]": priceMin,
-      "price[max]": priceMax,
-      currency,
-      "number_of_rooms[]": numberOfRooms,
-      "area[min]": areaMin,
-      "area[max]": areaMax,
-      "building_year[min]": buildingYearMin,
-      "building_year[max]": buildingYearMax,
-      resale,
-      outermost_floor: outermostFloor
-    }
-  });
+  const params = {
+    "price[min]": priceMin >= 1 && priceMin <= 2300000 ? priceMin : 1,
+    "price[max]": priceMax >= 1 && priceMax <= 2300000 ? priceMax : 2300000,
+    currency: currency || "usd",
+    "number_of_rooms[]":
+      numberOfRooms >= 1 && numberOfRooms <= 4 ? numberOfRooms : 1,
+    "area[min]": areaMin >= 1 && areaMin <= 1000 ? areaMin : 1,
+    "area[max]": areaMax >= 1 && areaMax <= 1000 ? areaMax : 1000,
+    "building_year[min]":
+      buildingYearMin >= 1900 && buildingYearMin <= 2029
+        ? buildingYearMin
+        : 1900,
+    "building_year[max]":
+      buildingYearMax >= 1900 && buildingYearMax <= 2029
+        ? buildingYearMax
+        : 2029,
+    resale
+  };
+
+  if (outermostFloor) {
+    params.outermostFloor = "true";
+  }
+
+  const response = await client.get("/search/apartments", { params });
   return response.data;
 };

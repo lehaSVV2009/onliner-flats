@@ -8,16 +8,15 @@ const telegramApi = require("./telegramApi");
 
 const DEFAULT_CONFIG = {
   chatId: `${process.env.TELEGRAM_CHAT_ID}`,
-  priceMin: 10000,
-  priceMax: 500000,
+  priceMin: 1,
+  priceMax: 2300000,
   currency: "usd",
   numberOfRooms: 1,
   areaMin: 1,
   areaMax: 1000,
-  buildingYearMin: 1950,
+  buildingYearMin: 1900,
   buildingYearMax: 2029,
   resale: "true",
-  outermostFloor: "false",
   fromDate: moment()
     .subtract(1, "days")
     .toDate(),
@@ -129,14 +128,17 @@ const parseTelegramConfig = event => {
     config.chatId = message.chat.id;
   }
 
-  if (!message.text || !message.text.trim().startsWith("/flats")) {
+  let text = message.text;
+  if (!text || !text.trim().startsWith("/flats")) {
     return config;
   }
 
-  const argv = message.text
-    .trim()
-    .replace("/flats", "")
-    .match(/\S+/g);
+  text = text.trim();
+  if (!text.startsWith("/flats") || text === "/flats") {
+    return config;
+  }
+
+  const argv = text.replace("/flats", "").match(/\S+/g);
   const telegramConfig = parseArgs(argv) || {};
 
   return {
@@ -170,7 +172,7 @@ const formatStartMessage = config => {
 
   return (
     "Введите /flats чтобы увидеть НОВЫЕ объявления о квартирах сегодня" +
-    "\n\nПримеры:" +
+    "\n\nПримеры команд:" +
     "\n`/flats --priceMin=20000 --priceMax=60000` - квартиры от 20.000$ до 60.000$" +
     "\n`/flats --numberOfRooms=2` - двухкомнатные квартиры" +
     "\n`/flats --numberOfRooms=3 --areaMin=50 --areaMax=90` - трехкомнатные от 50 кв.м. до 90 кв.м." +
