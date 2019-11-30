@@ -209,12 +209,12 @@ const formatStartMessage = config => {
     "\n`/flats --numberOfRooms=2` - двухкомнатные квартиры" +
     "\n`/flats --numberOfRooms=3 --areaMin=50 --areaMax=90` - трехкомнатные от 50 кв.м. до 90 кв.м." +
     "\n`/flats --buildingYearMin=1970 --buildingYearMax=2010` - годом постройки от 1970 до 2010" +
-    "\n`/flats --metersToSubway=3000 - максимум 3км до ближайшего метро" +
-    "\n`/flats --fromDate=2019-11-01 --toDate=2019-11-10 - появившиеся в продаже с 1 по 10 ноября 2019 года" +
-    "\n`/flats --resale=false - только новостройки" +
-    "\n`/flats --outermostFloor=true - не первый и не последний этажи" +
+    "\n`/flats --resale=false` - только новостройки" +
+    "\n`/flats --outermostFloor=true` - не первый и не последний этажи" +
+    "\n`/flats --metersToSubway=3000` - максимум 3км до ближайшего метро" +
+    "\n`/flats --fromDate=2019-11-01 --toDate=2019-11-10` - появившиеся в продаже с 1 по 10 ноября 2019 года" +
     "\n\n Параметры по умолчанию:" +
-    "\n`/flats " +
+    "\n```/flats " +
     `--priceMin=${startConfig.priceMin}` +
     `--priceMax=${startConfig.priceMax}` +
     `--numberOfRooms=${startConfig.numberOfRooms}` +
@@ -228,7 +228,7 @@ const formatStartMessage = config => {
     ` --resale=${startConfig.resale}` +
     ` --outermostFloor=${startConfig.outermostFloor}` +
     ` --currency=${startConfig.currency}` +
-    "`"
+    "```"
   );
 };
 
