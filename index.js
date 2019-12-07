@@ -18,7 +18,7 @@ const DEFAULT_CONFIG = {
   buildingYearMax: 2029,
   walling: [],
   fromDate: moment()
-    .subtract(1, "days")
+    .subtract(24, "hours")
     .toDate(),
   toDate: moment().toDate(),
   metersToSubway: 10000
@@ -54,11 +54,11 @@ const handler = async event => {
       }
       case EVENT_TYPE.URL_FLATS:
       default: {
-        const config = parseUrlConfig(event);
         // TODO add Joi.assert
+        const config = parseUrlConfig(event);
         const flats = await findFlats(config);
 
-        if (!config.skipTelegramIfEmpty) {
+        if (flats.length !== 0 || !config.skipTelegramIfEmpty) {
           await sendFlatsMessageToTelegram(flats, config);
         }
 
@@ -128,6 +128,15 @@ const parseUrlConfig = event => {
   }
   if (config.walling) {
     config.walling = event.multiValueQueryStringParameters.walling;
+  }
+  if (config.hoursAgo && config.hoursAgo > 0) {
+    config.fromDate = config.toDate
+      ? moment(config.toDate)
+          .subtract(config.hoursAgo, "hours")
+          .toDate()
+      : moment()
+          .subtract(config.hoursAgo, "hours")
+          .toDate();
   }
 
   return config;

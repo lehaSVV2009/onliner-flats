@@ -3,7 +3,7 @@ const expect = require("chai").expect;
 const { handler } = require("./index");
 
 describe("integration tests", () => {
-  it("should send message to telegram on /help", async () => {
+  it.skip("should send message to telegram on /help", async () => {
     const event = {
       body: JSON.stringify({
         message: { text: "/help" }
@@ -60,11 +60,13 @@ describe("integration tests", () => {
         numberOfRooms: 1,
         areaMin: 30,
         buildingYearMin: 1980,
-        fromDate: "2019-11-01",
-        toDate: "2019-12-01",
+        hoursAgo: 3,
         metersToSubway: 1000,
         resale: "true",
         outermostFloor: "true"
+      },
+      multiValueQueryStringParameters: {
+        numberOfRooms: [1]
       }
     };
     const response = await handler(event);
