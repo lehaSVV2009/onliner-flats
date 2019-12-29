@@ -52,5 +52,33 @@ describe("flats", () => {
       });
       expect(filteredFlats).to.have.length(2);
     });
+
+    it(`should find New Borovaya flat only`, () => {
+      const flats = [
+        {
+          created_at: new Date().toISOString(),
+          location: { latitude: 53.952255, longitude: 27.6665953 } // Leonardo Da Vinchi 2
+        },
+        {
+          created_at: new Date().toISOString(),
+          location: { latitude: 53.912314, longitude: 27.578723 } // Nezavisimosti 43
+        }
+      ];
+
+      const filteredFlats = filterFlats(flats, {
+        fromDate: new Date("2019-11-29"),
+        toDate: new Date(),
+        polygon: [
+          { latitude: 53.949138, longitude: 27.659804 },
+          { latitude: 53.952456, longitude: 27.669926 },
+          { latitude: 53.964345, longitude: 27.667506 },
+          { latitude: 53.965759, longitude: 27.648362 },
+          { latitude: 53.957926, longitude: 27.634967 }
+        ]
+      });
+
+      expect(filteredFlats).to.have.length(1);
+      expect(filteredFlats[0].location.latitude).to.equal(53.952255);
+    });
   });
 });

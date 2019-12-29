@@ -1,4 +1,4 @@
-const { getDistance } = require("geolib");
+const { getDistance, isPointInPolygon } = require("geolib");
 const moment = require("moment");
 
 const onlinerApi = require("./onlinerApi");
@@ -38,16 +38,21 @@ const MINSK_SUBWAY_COORDINATES = [
 ];
 
 /**
+ * @typedef CustomFilters
+ * @property {Date} fromDate
+ * @property {Date} toDate
+ * @property {number} [metersToSubway]
+ * @property {GeoLocation[]} [polygon]
  *
  * @param {import("./onlinerApi").Apartment[]} flats
- * @param {{ fromDate: Date, toDate: Date, metersToSubway: number }} config
+ * @param {CustomFilters} filters
  */
-const filterFlats = (flats, config) => {
+const filterFlats = (flats, filters) => {
   return flats
     .filter(flat => {
       return moment(flat.created_at).isBetween(
-        config.fromDate,
-        config.toDate,
+        filters.fromDate,
+        filters.toDate,
         null,
         "(]"
       );
@@ -67,26 +72,37 @@ const filterFlats = (flats, config) => {
       return { ...flat, closestSubwayDistance, closestSubwayCoordinates };
     })
     .filter(flat => {
-      return flat.closestSubwayDistance < (config.metersToSubway || 10000);
+      return flat.closestSubwayDistance < (filters.metersToSubway || 10000);
+    })
+    .filter(flat => {
+      return Array.isArray(filters.polygon)
+        ? isPointInPolygon(flat.location, filters.polygon)
+        : true;
     });
 };
 
 /**
+ * @typedef GeoLocation
+ * @property {number} latitude
+ * @property {number} longitude
+ *
  * @typedef Config
  * @property {number} chatId
  * @property {number} priceMin
  * @property {number} priceMax
  * @property {string} currency
- * @property {number} numberOfRooms
+ * @property {number[]} numberOfRooms
  * @property {number} areaMin
  * @property {number} areaMax
  * @property {number} buildingYearMin
  * @property {number} buildingYearMax
  * @property {string} resale
  * @property {string} outermostFloor
+ * @property {string[]} walling
  * @property {date} fromDate
  * @property {date} toDate
  * @property {number} metersToSubway
+ * @property {GeoLocation[]} polygon
  *
  * @param {Config} config
  * @returns {Promise<import("./onlinerApi").Apartment>} flats

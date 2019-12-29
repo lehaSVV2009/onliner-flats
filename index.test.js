@@ -1,4 +1,8 @@
-const expect = require("chai").expect;
+const chai = require("chai");
+const chaiSubset = require("chai-subset");
+chai.use(chaiSubset);
+const expect = chai.expect;
+
 const {
   EVENT_TYPE,
   resolveEventType,
@@ -85,6 +89,8 @@ describe("index", () => {
           " --metersToSubway=10000" +
           " --resale=true" +
           " --outermostFloor=false" +
+          " --polygon=53.949138,27.659804" +
+          " --polygon=53.952456,27.669926" +
           ' --currency=usd" } }'
       };
 
@@ -106,6 +112,10 @@ describe("index", () => {
       });
       expect(config.numberOfRooms).to.have.members([1, 2]);
       expect(config.walling).to.have.members(["block", "monolith", "brick"]);
+      expect(config.polygon).to.containSubset([
+        { latitude: 53.949138, longitude: 27.659804 },
+        { latitude: 53.952456, longitude: 27.669926 }
+      ]);
     });
   });
 });

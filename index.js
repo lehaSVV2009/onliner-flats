@@ -129,6 +129,11 @@ const parseUrlConfig = event => {
   if (config.walling) {
     config.walling = event.multiValueQueryStringParameters.walling;
   }
+  if (config.polygon) {
+    config.polygon = event.multiValueQueryStringParameters.polygon.map(
+      textToLocation
+    );
+  }
   if (config.hoursAgo && config.hoursAgo > 0) {
     config.fromDate = config.toDate
       ? moment(config.toDate)
@@ -173,11 +178,23 @@ const parseTelegramConfig = event => {
   if (telegramConfig.walling && !Array.isArray(telegramConfig.walling)) {
     telegramConfig.walling = [telegramConfig.walling];
   }
+  if (telegramConfig.polygon && Array.isArray(telegramConfig.polygon)) {
+    telegramConfig.polygon = telegramConfig.polygon.map(textToLocation);
+  }
 
   return {
     ...config,
     ...telegramConfig
   };
+};
+
+/**
+ * @param {string} text 53.949138,27.659804
+ * @returns {Object} { latitude: 53.949138, longitude: 27.659804 }
+ */
+const textToLocation = text => {
+  const [latitude, longitude] = text.split(",");
+  return { latitude: Number(latitude), longitude: Number(longitude) };
 };
 
 /**
@@ -216,6 +233,7 @@ const formatStartMessage = config => {
     "\n`/flats --metersToSubway=3000` - максимум 3км до ближайшего метро" +
     "\n`/flats --walling=brick --walling=monolith` - только кирпич или монолит (возможные варианты: `brick`, `monolith`, `block`, `panel`)" +
     "\n`/flats --fromDate=2019-11-01 --toDate=2019-11-10` - появившиеся в продаже с 1 по 10 ноября 2019 года" +
+    "\n`/flats --polygon=53.949138,27.659804 --polygon=53.952456,27.669926 --polygon=53.964345,27.667506 --polygon=53.965759,27.648362 --polygon=53.957926,27.634967` - только в районе Новой Боровой" +
     "\n\n Параметры по умолчанию:" +
     "\n```\n/flats" +
     ` --priceMin=${startConfig.priceMin}` +
