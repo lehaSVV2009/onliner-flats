@@ -108,7 +108,25 @@ const filterFlats = (flats, filters) => {
  * @returns {Promise<import("./onlinerApi").Apartment>} flats
  */
 const findFlats = async config => {
-  const { apartments: flats } = await onlinerApi.fetchApartments(config);
+  const flats = [];
+
+  let currentPage = 1;
+  let lastPage = 1;
+
+  do {
+    const {
+      apartments,
+      page: { last }
+    } = await onlinerApi.fetchApartments({
+      ...config,
+      page: currentPage
+    });
+
+    flats.push(...apartments);
+
+    lastPage = last;
+    currentPage++;
+  } while (currentPage <= lastPage);
 
   return filterFlats(flats, config);
 };

@@ -1,16 +1,20 @@
 const axios = require("axios");
 const qs = require("qs");
+const curlirize = require("axios-curlirize");
 
 const client = axios.create({
   baseURL: process.env.ONLINER_API_URL || "https://pk.api.onliner.by",
   timeout: 15000
 });
 
+curlirize(client);
+
 /**
  * @typedef Location
  * @property {number} latitude 53.944847
  * @property {number} longitude 27.695568
  * @property {string} address "Минск, Стариновская улица, 4"
+ * @property {string} user_address "Стариновская улица, 4"
  *
  * @typedef Price
  * @property {number} amount "50000.00"
@@ -25,6 +29,8 @@ const client = axios.create({
  * @property {number} total 30
  *
  * @typedef Apartment
+ * @property {number} id 303987
+ * @property {number} author_id 303987
  * @property {string} created_at "2019-11-22T17:58:26+0300"
  * @property {string} last_time_up "2019-11-22T17:58:26+0300"
  * @property {string} url "https://r.onliner.by/pk/apartments/308981"
@@ -34,11 +40,22 @@ const client = axios.create({
  * @property {Location} location
  * @property {Price} price
  * @property {Seller} seller
+ * @property {boolean} resale false
+ * @property {number} number_of_rooms 5
+ * @property {number} number_of_floors 11
+ * @property {number} floor 10
+ * @property {any} auction_bid
+ *
+ * @typedef Page
+ * @property {number} limit 96
+ * @property {number} items 96
+ * @property {number} current 1
+ * @property {number} last 8
  *
  * @typedef ApartmentResponse
  * @property {Apartment[]} apartments
  * @property {number} total
- * @property {Object} page
+ * @property {Page} page
  *
  * @returns {Promise<ApartmentResponse>}
  */
@@ -52,9 +69,11 @@ exports.fetchApartments = async ({
   buildingYearMax,
   resale,
   outermostFloor,
-  walling
+  walling,
+  page
 }) => {
   const params = {
+    page: page || 1,
     "price[min]": priceMin >= 1 && priceMin <= 2300000 ? priceMin : 1,
     "price[max]": priceMax >= 1 && priceMax <= 2300000 ? priceMax : 2300000,
     currency: "usd",
