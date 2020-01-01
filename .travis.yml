@@ -12,7 +12,7 @@ deploy:
     runtime: nodejs10.x
     zip: build.zip
     handler_name: handler
-    timeout: 10 # seconds
+    timeout: 30 # seconds
     memory_size: 128 # MB
     skip_cleanup: true
     access_key_id: $AWS_ACCESS_KEY_ID

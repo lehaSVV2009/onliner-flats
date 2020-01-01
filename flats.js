@@ -108,6 +108,8 @@ const filterFlats = (flats, filters) => {
  * @returns {Promise<import("./onlinerApi").Apartment>} flats
  */
 const findFlats = async config => {
+  console.log(`Find flats started. ${JSON.stringify(config)}`);
+
   const flats = [];
 
   let currentPage = 1;
@@ -128,7 +130,15 @@ const findFlats = async config => {
     currentPage++;
   } while (currentPage <= lastPage);
 
-  return filterFlats(flats, config);
+  const filteredFlats = filterFlats(flats, config);
+  console.log(
+    `Find flats finished. ${JSON.stringify({
+      fetched: flats.length,
+      filtered: filteredFlats.length
+    })}`
+  );
+
+  return filteredFlats;
 };
 
 exports.findFlats = findFlats;

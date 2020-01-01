@@ -52,21 +52,48 @@ describe("integration tests", () => {
     expect(response.statusCode).equal(200);
   });
 
-  it.skip("should send message to telegram on curl with options", async () => {
+  // ?chatId=-351403469&priceMin=34750&priceMax=55500&currency=usd&numberOfRooms=1&numberOfRooms=2&areaMin=30&areaMax=1000&buildingYearMin=1980&buildingYearMax=2029&resale=true&outermostFloor=false&metersToSubway=5000
+  it("Daily onliner flats", async () => {
     const event = {
       queryStringParameters: {
-        priceMin: 30000,
-        priceMax: 50500,
+        priceMin: 34750,
+        priceMax: 55500,
         numberOfRooms: 1,
+        currency: "usd",
         areaMin: 30,
+        areaMax: 1000,
         buildingYearMin: 1980,
-        hoursAgo: 3,
-        metersToSubway: 1000,
-        resale: "true",
-        outermostFloor: "true"
+        buildingYearMax: 2029,
+        metersToSubway: 5000,
+        outermostFloor: "false"
       },
       multiValueQueryStringParameters: {
-        numberOfRooms: [1]
+        numberOfRooms: [1, 2]
+      }
+    };
+    const response = await handler(event);
+    expect(response.statusCode).equal(200);
+  });
+
+  // ?chatId=-351403469&priceMin=34750&priceMax=55500&currency=usd&numberOfRooms=1&numberOfRooms=2&areaMin=30&areaMax=1000&buildingYearMin=1980&buildingYearMax=2029&resale=true&outermostFloor=false&metersToSubway=1000&skipTelegramIfEmpty=true&hoursAgo=1
+  it.skip("Super-new onliner flats", async () => {
+    const event = {
+      queryStringParameters: {
+        priceMin: 34750,
+        priceMax: 55500,
+        numberOfRooms: 1,
+        currency: "usd",
+        areaMin: 30,
+        areaMax: 1000,
+        buildingYearMin: 1980,
+        buildingYearMax: 2029,
+        metersToSubway: 1000,
+        outermostFloor: "false",
+        skipTelegramIfEmpty: true,
+        hoursAgo: 1
+      },
+      multiValueQueryStringParameters: {
+        numberOfRooms: [1, 2]
       }
     };
     const response = await handler(event);
