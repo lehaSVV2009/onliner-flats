@@ -53,7 +53,7 @@ describe("integration tests", () => {
   });
 
   // ?chatId=-351403469&priceMin=34750&priceMax=55500&currency=usd&numberOfRooms=1&numberOfRooms=2&areaMin=30&areaMax=1000&buildingYearMin=1980&buildingYearMax=2029&resale=true&outermostFloor=false&metersToSubway=5000
-  it("Daily onliner flats", async () => {
+  it.skip("Daily onliner flats", async () => {
     const event = {
       queryStringParameters: {
         priceMin: 34750,
@@ -65,6 +65,7 @@ describe("integration tests", () => {
         buildingYearMin: 1980,
         buildingYearMax: 2029,
         metersToSubway: 5000,
+        resale: "true",
         outermostFloor: "false"
       },
       multiValueQueryStringParameters: {
@@ -94,6 +95,34 @@ describe("integration tests", () => {
       },
       multiValueQueryStringParameters: {
         numberOfRooms: [1, 2]
+      }
+    };
+    const response = await handler(event);
+    expect(response.statusCode).equal(200);
+  });
+
+  // ?chatId=-351403469&priceMin=34750&priceMax=65000&currency=usd&numberOfRooms=1&numberOfRooms=2&areaMin=20&areaMax=1000&skipTelegramIfEmpty=true&polygon=53.949138,27.659804&polygon=53.952456,27.669926&polygon=53.964345,27.667506&polygon=53.965759,27.648362&polygon=53.957926,27.634967
+  it("Novaya Borovaya daily cheap flats", async () => {
+    const event = {
+      queryStringParameters: {
+        priceMin: 34750,
+        priceMax: 65000,
+        currency: "usd",
+        numberOfRooms: 1,
+        areaMin: 20,
+        areaMax: 1000,
+        polygon: "53.949138,27.659804",
+        skipTelegramIfEmpty: true
+      },
+      multiValueQueryStringParameters: {
+        numberOfRooms: [1, 2],
+        polygon: [
+          "53.949138,27.659804",
+          "53.952456,27.669926",
+          "53.964345,27.667506",
+          "53.965759,27.648362",
+          "53.957926,27.634967"
+        ]
       }
     };
     const response = await handler(event);
