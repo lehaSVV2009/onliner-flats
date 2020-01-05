@@ -17,7 +17,7 @@ const DEFAULT_CONFIG = {
   buildingYearMin: 1900,
   buildingYearMax: 2029,
   walling: [],
-  leftBottomLatitiude: 53.75845444856318,
+  leftBottomLatitude: 53.75845444856318,
   leftBottomLongitude: 27.39028930664063,
   rightTopLatitude: 54.03721564638805,
   rightTopLongitude: 27.73361206054688,
@@ -249,7 +249,7 @@ const formatStartMessage = config => {
     ` --areaMax=${startConfig.areaMax}` +
     ` --buildingYearMin=${startConfig.buildingYearMin}` +
     ` --buildingYearMax=${startConfig.buildingYearMax}` +
-    ` --leftBottomLatitiude=${startConfig.leftBottomLatitiude}` +
+    ` --leftBottomLatitude=${startConfig.leftBottomLatitude}` +
     ` --leftBottomLongitude=${startConfig.leftBottomLongitude}` +
     ` --rightTopLatitude=${startConfig.rightTopLatitude}` +
     ` --rightTopLongitude=${startConfig.rightTopLongitude}` +

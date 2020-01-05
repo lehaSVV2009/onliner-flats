@@ -70,7 +70,7 @@ exports.fetchApartments = async ({
   resale,
   outermostFloor,
   walling,
-  leftBottomLatitiude,
+  leftBottomLatitude,
   leftBottomLongitude,
   rightTopLatitude,
   rightTopLongitude,
@@ -111,8 +111,8 @@ exports.fetchApartments = async ({
     params.outermostFloor = "true";
   }
 
-  if (leftBottomLatitiude) {
-    params["bounds[lb][lat]"] = leftBottomLatitiude;
+  if (leftBottomLatitude) {
+    params["bounds[lb][lat]"] = leftBottomLatitude;
   }
   if (leftBottomLongitude) {
     params["bounds[lb][long]"] = leftBottomLongitude;

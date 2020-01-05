@@ -89,7 +89,7 @@ describe("index", () => {
           " --metersToSubway=10000" +
           " --resale=true" +
           " --outermostFloor=false" +
-          " --leftBottomLatitiude=53.949138" +
+          " --leftBottomLatitude=53.949138" +
           " --leftBottomLongitude=27.659804" +
           " --rightTopLatitude=53.952456" +
           " --rightTopLongitude=27.669926" +
@@ -113,7 +113,7 @@ describe("index", () => {
         resale: "true",
         outermostFloor: "false",
         currency: "usd",
-        leftBottomLatitiude: 53.949138,
+        leftBottomLatitude: 53.949138,
         leftBottomLongitude: 27.659804,
         rightTopLatitude: 53.952456,
         rightTopLongitude: 27.669926

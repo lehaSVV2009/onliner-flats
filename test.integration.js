@@ -102,7 +102,7 @@ describe("integration tests", () => {
   });
 
   // https://pk.api.onliner.by/search/apartments?bounds%5Blb%5D%5Blat%5D=53.94990237377555&bounds%5Blb%5D%5Blong%5D=27.64920093119145&bounds%5Brt%5D%5Blat%5D=53.967299682838075&bounds%5Brt%5D%5Blong%5D=27.670658603310592&page=1
-  // ?chatId=-351403469&priceMin=34750&priceMax=65000&currency=usd&numberOfRooms=1&numberOfRooms=2&areaMin=20&areaMax=1000&skipTelegramIfEmpty=true&polygon=53.949138,27.659804&polygon=53.952456,27.669926&polygon=53.964345,27.667506&polygon=53.965759,27.648362&polygon=53.957926,27.634967
+  // ?chatId=-351403469&priceMin=34750&priceMax=65000&currency=usd&numberOfRooms=1&numberOfRooms=2&areaMin=20&areaMax=1000&leftBottomLatitude=
   it.skip("Novaya Borovaya daily cheap flats", async () => {
     const event = {
       queryStringParameters: {
@@ -112,7 +112,7 @@ describe("integration tests", () => {
         numberOfRooms: 1,
         areaMin: 20,
         areaMax: 1000,
-        leftBottomLatitiude: 53.94990237377555,
+        leftBottomLatitude: 53.94990237377555,
         leftBottomLongitude: 27.64920093119145,
         rightTopLatitude: 53.967299682838075,
         rightTopLongitude: 27.670658603310592
