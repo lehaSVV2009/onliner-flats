@@ -17,6 +17,10 @@ const DEFAULT_CONFIG = {
   buildingYearMin: 1900,
   buildingYearMax: 2029,
   walling: [],
+  leftBottomLatitiude: 53.75845444856318,
+  leftBottomLongitude: 27.39028930664063,
+  rightTopLatitude: 54.03721564638805,
+  rightTopLongitude: 27.73361206054688,
   fromDate: moment()
     .subtract(24, "hours")
     .toDate(),
@@ -233,7 +237,7 @@ const formatStartMessage = config => {
     "\n`/flats --metersToSubway=3000` - максимум 3км до ближайшего метро" +
     "\n`/flats --walling=brick --walling=monolith` - только кирпич или монолит (возможные варианты: `brick`, `monolith`, `block`, `panel`)" +
     "\n`/flats --fromDate=2019-11-01 --toDate=2019-11-10` - появившиеся в продаже с 1 по 10 ноября 2019 года" +
-    "\n`/flats --polygon=53.949138,27.659804 --polygon=53.952456,27.669926 --polygon=53.964345,27.667506 --polygon=53.965759,27.648362 --polygon=53.957926,27.634967` - только в районе Новой Боровой" +
+    "\n`/flats --leftBottomLatitude=53.94990237377555 --leftBottomLongitude=27.64920093119145 --rightTopLatitude=53.967299682838075 --rightTopLongitude=27.670658603310592` - квартиры сегодня только из Новой Боровой" +
     "\n\n Параметры по умолчанию:" +
     "\n```\n/flats" +
     ` --priceMin=${startConfig.priceMin}` +
@@ -245,6 +249,10 @@ const formatStartMessage = config => {
     ` --areaMax=${startConfig.areaMax}` +
     ` --buildingYearMin=${startConfig.buildingYearMin}` +
     ` --buildingYearMax=${startConfig.buildingYearMax}` +
+    ` --leftBottomLatitiude=${startConfig.leftBottomLatitiude}` +
+    ` --leftBottomLongitude=${startConfig.leftBottomLongitude}` +
+    ` --rightTopLatitude=${startConfig.rightTopLatitude}` +
+    ` --rightTopLongitude=${startConfig.rightTopLongitude}` +
     ` --fromDate=${startConfig.fromDate}` +
     ` --toDate=${startConfig.toDate}` +
     ` --metersToSubway=${startConfig.metersToSubway}` +

@@ -89,6 +89,10 @@ describe("index", () => {
           " --metersToSubway=10000" +
           " --resale=true" +
           " --outermostFloor=false" +
+          " --leftBottomLatitiude=53.949138" +
+          " --leftBottomLongitude=27.659804" +
+          " --rightTopLatitude=53.952456" +
+          " --rightTopLongitude=27.669926" +
           " --polygon=53.949138,27.659804" +
           " --polygon=53.952456,27.669926" +
           ' --currency=usd" } }'
@@ -108,7 +112,11 @@ describe("index", () => {
         toDate: "2019-12-01",
         resale: "true",
         outermostFloor: "false",
-        currency: "usd"
+        currency: "usd",
+        leftBottomLatitiude: 53.949138,
+        leftBottomLongitude: 27.659804,
+        rightTopLatitude: 53.952456,
+        rightTopLongitude: 27.669926
       });
       expect(config.numberOfRooms).to.have.members([1, 2]);
       expect(config.walling).to.have.members(["block", "monolith", "brick"]);

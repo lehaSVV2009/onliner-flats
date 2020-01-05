@@ -70,6 +70,10 @@ exports.fetchApartments = async ({
   resale,
   outermostFloor,
   walling,
+  leftBottomLatitiude,
+  leftBottomLongitude,
+  rightTopLatitude,
+  rightTopLongitude,
   page
 }) => {
   const params = {
@@ -105,6 +109,19 @@ exports.fetchApartments = async ({
 
   if (outermostFloor) {
     params.outermostFloor = "true";
+  }
+
+  if (leftBottomLatitiude) {
+    params["bounds[lb][lat]"] = leftBottomLatitiude;
+  }
+  if (leftBottomLongitude) {
+    params["bounds[lb][long]"] = leftBottomLongitude;
+  }
+  if (rightTopLatitude) {
+    params["bounds[rt][lat]"] = rightTopLatitude;
+  }
+  if (rightTopLongitude) {
+    params["bounds[rt][long]"] = rightTopLongitude;
   }
 
   const response = await client.get("/search/apartments", {
