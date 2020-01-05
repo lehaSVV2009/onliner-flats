@@ -25,7 +25,8 @@ const DEFAULT_CONFIG = {
     .subtract(24, "hours")
     .toDate(),
   toDate: moment().toDate(),
-  metersToSubway: 10000
+  metersToSubway: 10000,
+  title: "Онлайнер новые предложения квартир за день"
 };
 
 const EVENT_TYPE = {
@@ -256,6 +257,7 @@ const formatStartMessage = config => {
     ` --fromDate=${startConfig.fromDate}` +
     ` --toDate=${startConfig.toDate}` +
     ` --metersToSubway=${startConfig.metersToSubway}` +
+    ` --title=${startConfig.title}` +
     "```"
   );
 };
@@ -266,7 +268,7 @@ const formatStartMessage = config => {
  * @returns {string}
  */
 const formatFlatsMessage = (flats, config) =>
-  "Онлайнер новые предложения квартир за день" +
+  config.title +
   `\n\n${flats
     .map(
       flat =>
