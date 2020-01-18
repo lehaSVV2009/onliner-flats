@@ -273,6 +273,7 @@ const formatFlatsMessage = (flats, config) =>
     .map(
       flat =>
         `${flat.price.amount} ${flat.price.currency}` +
+        `\n${flat.number_of_rooms}-комнатная квартира` +
         `\n${flat.location.address}` +
         `\nПлощадь: ${flat.area.total} м2` +
         `\n${flat.closestSubwayDistance} метров до метро` +
