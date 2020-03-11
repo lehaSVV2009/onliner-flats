@@ -278,6 +278,7 @@ const formatFlatsMessage = (flats, config) =>
         `\nПлощадь: ${flat.area.total} м2` +
         `\n${flat.closestSubwayDistance} метров до метро` +
         `\nВыложено ${moment().diff(flat.created_at, "hours")}ч назад` +
+        `\nЦена опущена ${moment().diff(flat.last_time_up, "hours")}ч назад` +
         `\n${flat.url}`
     )
     .join("\n\n")} ` +

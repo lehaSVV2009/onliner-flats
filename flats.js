@@ -50,11 +50,19 @@ const MINSK_SUBWAY_COORDINATES = [
 const filterFlats = (flats, filters) => {
   return flats
     .filter(flat => {
-      return moment(flat.created_at).isBetween(
-        filters.fromDate,
-        filters.toDate,
-        null,
-        "(]"
+      return (
+        moment(flat.created_at).isBetween(
+          filters.fromDate,
+          filters.toDate,
+          null,
+          "(]"
+        ) ||
+        moment(flat.last_time_up).isBetween(
+          filters.fromDate,
+          filters.toDate,
+          null,
+          "(]"
+        )
       );
     })
     .map(flat => {
