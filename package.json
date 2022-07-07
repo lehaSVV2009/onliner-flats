@@ -16,7 +16,7 @@
     "dotenv": "^8.2.0",
     "geolib": "^3.2.1",
     "minimist": "^1.2.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "qs": "^6.9.1"
   },
   "devDependencies": {
